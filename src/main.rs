@@ -1,10 +1,13 @@
 use crate::error::LoxError;
+use crate::scanner::Scanner;
 use std::fs;
 use std::io::{self, BufRead};
 use std::{env, process};
 
-mod token_types;
-mod error;
+pub mod error;
+mod scanner;
+pub mod token;
+pub mod token_types;
 
 fn main() {
     let args: Vec<String> = env::args().collect();
@@ -27,7 +30,7 @@ fn run_file(path: &String) -> io::Result<()> {
     for line in contents.lines() {
         println!("{}", line);
     }
-    run(contents.as_str());
+    run(contents.to_string());
     Ok(())
 }
 
@@ -39,7 +42,7 @@ fn run_prompt() -> io::Result<()> {
             if line.is_empty() {
                 break;
             }
-            run(&line.as_str())
+            run(line.to_string())
         } else {
             break;
         }
@@ -47,23 +50,8 @@ fn run_prompt() -> io::Result<()> {
     Ok(())
 }
 
-struct Scanner<T> {
-    source: T,
-}
-impl<T: std::fmt::Display> Scanner<T> {
-    fn new(source: T) -> Self {
-        Scanner { source }
-    }
-
-    fn scan_tokens(&self) -> &T {
-        println!("scanning tokens");
-        println!("source: {}", &self.source);
-        &self.source
-    }
-}
-
-fn run<T: std::fmt::Display>(source: T) {
-    let scanner = Scanner::new(source);
+fn run(source: String) {
+    let mut scanner = Scanner::new(source);
     let tokens = scanner.scan_tokens();
 }
 
