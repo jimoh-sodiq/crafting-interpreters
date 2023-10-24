@@ -1,4 +1,4 @@
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum TokenType {
     LeftParen,
     RightParen,
@@ -29,7 +29,7 @@ pub enum TokenType {
     Fun,
     For,
     If,
-    NilL,
+    Nil,
     Or,
     Print,
     Return,

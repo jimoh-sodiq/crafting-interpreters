@@ -1,12 +1,14 @@
 use crate::error::LoxError;
 use crate::token::{Object, Token};
 use crate::token_types::TokenType;
+use std::collections::HashMap;
 pub struct Scanner {
     source: String,
     start: usize,
     current: usize,
     line: usize,
     tokens: Vec<Token>,
+    keywords: HashMap<String, TokenType>,
 }
 impl Scanner {
     pub fn new(source: String) -> Self {
@@ -16,6 +18,24 @@ impl Scanner {
             current: 0,
             line: 1,
             tokens: Vec::new(),
+            keywords: HashMap::from([
+                ("and".to_string(), TokenType::And),
+                ("class".to_string(), TokenType::Class),
+                ("else".to_string(), TokenType::Else),
+                ("false".to_string(), TokenType::False),
+                ("for".to_string(), TokenType::For),
+                ("fun".to_string(), TokenType::Fun),
+                ("if".to_string(), TokenType::If),
+                ("nil".to_string(), TokenType::Nil),
+                ("or".to_string(), TokenType::Or),
+                ("print".to_string(), TokenType::Print),
+                ("return".to_string(), TokenType::Return),
+                ("super".to_string(), TokenType::Super),
+                ("this".to_string(), TokenType::This),
+                ("true".to_string(), TokenType::True),
+                ("var".to_string(), TokenType::Var),
+                ("while".to_string(), TokenType::While),
+            ]),
         }
     }
 
@@ -137,6 +157,30 @@ impl Scanner {
         self.add_token_object(TokenType::Number, Some(Object::Num(num_val)));
     }
 
+    fn is_alpha(&self, c: char) -> bool {
+        (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || c == '_'
+    }
+
+    fn is_alpha_numeric(&self, c: char) -> bool {
+        self.is_alpha(c) || self.is_digit(c)
+    }
+
+    fn identifier(&mut self) {
+        while self.is_alpha_numeric(self.peek()) {
+            self.advance();
+        }
+        let text = self
+            .source
+            .get(self.start..self.current)
+            .unwrap();
+
+        let ttype: Option<TokenType> = self.keywords.get(text).cloned();
+        match ttype {
+            Some(t) => self.add_token(t),
+            None => self.add_token(TokenType::Identifier),
+        }
+    }
+
     fn scan_token(&mut self) {
         let next_char = self.advance();
         if let Some(character) = next_char {
@@ -172,6 +216,8 @@ impl Scanner {
                 _token => {
                     if self.is_digit(_token) {
                         self.number()
+                    } else if self.is_alpha(_token) {
+                        self.identifier()
                     } else {
                         unreachable!("token type not matched")
                     }
