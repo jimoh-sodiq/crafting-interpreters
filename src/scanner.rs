@@ -102,6 +102,41 @@ impl Scanner {
         self.add_token_object(TokenType::String, Some(Object::Str(value.to_string())));
     }
 
+    fn peek_next(&self) -> char {
+        if self.current + 1 >= self.source.len() {
+            '\0'
+        } else {
+            self.source.chars().nth(self.current + 1).unwrap()
+        }
+    }
+
+    fn is_digit(&self, c: char) -> bool {
+        c >= '0' && c <= '9'
+    }
+
+    fn number(&mut self) {
+        while self.is_digit(self.peek()) {
+            self.advance();
+        }
+        // Look for a fractional part.
+        if self.peek() == '.' && self.is_digit(self.peek_next()) {
+            // Consume the "."
+            self.advance();
+
+            while self.is_digit(self.peek()) {
+                self.advance();
+            }
+        }
+        let num_val: f64 = self
+            .source
+            .get(self.start..self.current)
+            .unwrap()
+            .parse()
+            .unwrap();
+
+        self.add_token_object(TokenType::Number, Some(Object::Num(num_val)));
+    }
+
     fn scan_token(&mut self) {
         let next_char = self.advance();
         if let Some(character) = next_char {
@@ -134,7 +169,13 @@ impl Scanner {
                 '\t' => {}
                 '\n' => self.line += 1,
                 '"' => self.handle_string_literal(),
-                _tokens => unreachable!("token type not matched"),
+                _token => {
+                    if self.is_digit(_token) {
+                        self.number()
+                    } else {
+                        unreachable!("token type not matched")
+                    }
+                }
             }
         }
     }
