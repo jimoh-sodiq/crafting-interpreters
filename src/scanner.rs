@@ -1,5 +1,5 @@
 use crate::error::LoxError;
-use crate::token::Token;
+use crate::token::{Object, Token};
 use crate::token_types::TokenType;
 pub struct Scanner {
     source: String,
@@ -47,10 +47,20 @@ impl Scanner {
         result
     }
     fn add_token(&mut self, token_type: TokenType) {
+        self.add_token_object(token_type, None)
+    }
+
+    fn add_token_object(&mut self, token_type: TokenType, literal: Option<Object>) {
+        let text = self
+            .source
+            .get(self.start.try_into().unwrap()..self.current.try_into().unwrap());
         let token = Token {
             token_type,
-            literal: None,
-            lexeme: String::from(""),
+            literal,
+            lexeme: match text {
+                None => String::from(""),
+                Some(value) => value.to_string(),
+            },
             line: self.line,
         };
         self.tokens.push(token)
@@ -62,6 +72,34 @@ impl Scanner {
             true => self.add_token(true_val),
             false => self.add_token(false_val),
         }
+    }
+
+    fn peek(&self) -> char {
+        if self.is_at_end() {
+            '\0'
+        } else {
+            self.source.chars().nth(self.current).unwrap()
+        }
+    }
+
+    fn handle_string_literal(&mut self) {
+        while self.peek() != '"' && !self.is_at_end() {
+            if self.peek() == '\n' {
+                self.line += 1
+            };
+            self.advance();
+        }
+
+        if self.is_at_end() {
+            panic!("Unterminated String");
+        }
+
+        // The closing ".
+        self.advance();
+
+        // Trim the surrounding quotes.
+        let value = self.source.get(self.start + 1..self.current - 1).unwrap();
+        self.add_token_object(TokenType::String, Some(Object::Str(value.to_string())));
     }
 
     fn scan_token(&mut self) {
@@ -79,6 +117,23 @@ impl Scanner {
                 ';' => self.add_token(TokenType::Semicolon),
                 '*' => self.add_token(TokenType::Star),
                 '!' => self.match_and_advance('=', TokenType::BangEqual, TokenType::Bang),
+                '=' => self.match_and_advance('=', TokenType::EqualEqual, TokenType::Equal),
+                '<' => self.match_and_advance('=', TokenType::LessEqual, TokenType::Less),
+                '>' => self.match_and_advance('=', TokenType::GreaterEqual, TokenType::Greater),
+                '/' => {
+                    if self.matches('/') {
+                        while (self.peek() != '\n') && (!self.is_at_end()) {
+                            self.advance();
+                        }
+                    } else {
+                        self.add_token(TokenType::Slash);
+                    }
+                }
+                ' ' => {}
+                '\r' => {}
+                '\t' => {}
+                '\n' => self.line += 1,
+                '"' => self.handle_string_literal(),
                 _tokens => unreachable!("token type not matched"),
             }
         }
