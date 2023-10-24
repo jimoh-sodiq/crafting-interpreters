@@ -1,7 +1,6 @@
-use crate::error::LoxError;
 use crate::scanner::Scanner;
 use std::fs;
-use std::io::{self, BufRead};
+use std::io::{self, stdout, BufRead, Write};
 use std::{env, process};
 
 pub mod error;
@@ -20,9 +19,6 @@ fn main() {
     } else {
         run_prompt().expect("Failed to run the prompt");
     }
-
-    let mut scanner_error = LoxError::new();
-    scanner_error.set_error(true);
 }
 
 fn run_file(path: &String) -> io::Result<()> {
@@ -36,23 +32,34 @@ fn run_file(path: &String) -> io::Result<()> {
 
 fn run_prompt() -> io::Result<()> {
     let stdin = io::stdin();
+    print!("> ");
+    stdout().flush()?;
     for line in stdin.lock().lines() {
-        print!("> ");
-        if let Ok(line) = line {
-            if line.is_empty() {
-                break;
+        match line {
+            Ok(val) => {
+                if val.is_empty() {
+                    break;
+                } else {
+                    run(val)
+                }
             }
-            run(line.to_string())
-        } else {
-            break;
+            Err(e) => eprintln!("Error: {}", e.to_string()),
         }
+        // if let Ok(line) = line {
+        //     if line.is_empty() {
+        //         break;
+        //     }
+        //     run(line.to_string())
+        // } else {
+        //     break;
+        // }
     }
     Ok(())
 }
 
 fn run(source: String) {
     let mut scanner = Scanner::new(source);
-    let tokens = scanner.scan_tokens();
+    let _tokens = scanner.scan_tokens();
 }
 
 // struct Lox {

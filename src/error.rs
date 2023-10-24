@@ -15,8 +15,8 @@ impl LoxError {
         self.had_error = error
     }
 
-    pub fn report(&mut self, line: u32, message: String) {
-        println!("[ Error on line {} ] :  {}", line, message);
+    pub fn report(&mut self, line: usize, message: String) {
+        eprintln!("[ Error on line {} ] :  {}", line, message);
         self.set_error(true);
     }
 }

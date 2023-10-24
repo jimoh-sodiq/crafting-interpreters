@@ -20,7 +20,7 @@ impl fmt::Display for Object {
         }
     }
 }
-
+#[derive(Debug)]
 pub struct Token {
     pub token_type: TokenType,
     pub lexeme: String,
@@ -29,7 +29,7 @@ pub struct Token {
 }
 
 impl Token {
-    fn new(token_type: TokenType, lexeme: String, literal: Option<Object>, line: usize) -> Self {
+    pub fn new(token_type: TokenType, lexeme: String, literal: Option<Object>, line: usize) -> Self {
         Self {
             token_type,
             lexeme,
