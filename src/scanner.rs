@@ -32,17 +32,13 @@ impl Scanner {
         self.start = index
     }
 
-    fn match_and_advance(&mut self, expected: char) -> bool {
-        if !self.is_at_end() || self.source.chars().nth(self.current()) != Some(expected) {
+    fn matches(&mut self, expected: char) -> bool {
+        if self.is_at_end() || (self.source.chars().nth(self.current) != Some(expected)) {
             false
         } else {
             self.current += 1;
             true
         }
-    }
-
-    fn update_current_by(&mut self, index: usize) {
-        self.current += index;
     }
 
     fn advance(&mut self) -> Option<char> {
@@ -60,6 +56,14 @@ impl Scanner {
         self.tokens.push(token)
     }
 
+    fn match_and_advance(&mut self, expected: char, true_val: TokenType, false_val: TokenType) {
+        let matches_expectation = self.matches(expected);
+        match matches_expectation {
+            true => self.add_token(true_val),
+            false => self.add_token(false_val),
+        }
+    }
+
     fn scan_token(&mut self) {
         let next_char = self.advance();
         if let Some(character) = next_char {
@@ -74,7 +78,8 @@ impl Scanner {
                 '+' => self.add_token(TokenType::Plus),
                 ';' => self.add_token(TokenType::Semicolon),
                 '*' => self.add_token(TokenType::Star),
-                _tokens => (),
+                '!' => self.match_and_advance('=', TokenType::BangEqual, TokenType::Bang),
+                _tokens => unreachable!("token type not matched"),
             }
         }
     }
