@@ -158,21 +158,18 @@ impl Scanner {
     }
 
     fn is_alpha(&self, c: char) -> bool {
-        (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || c == '_'
+        c.is_ascii_alphabetic() || c == '_'
     }
 
     fn is_alpha_numeric(&self, c: char) -> bool {
-        self.is_alpha(c) || self.is_digit(c)
+        c.is_ascii_alphanumeric()|| c.is_ascii_digit()
     }
 
     fn identifier(&mut self) {
         while self.is_alpha_numeric(self.peek()) {
             self.advance();
         }
-        let text = self
-            .source
-            .get(self.start..self.current)
-            .unwrap();
+        let text = self.source.get(self.start..self.current).unwrap();
 
         let ttype: Option<TokenType> = self.keywords.get(text).cloned();
         match ttype {
@@ -208,9 +205,7 @@ impl Scanner {
                         self.add_token(TokenType::Slash);
                     }
                 }
-                ' ' => {}
-                '\r' => {}
-                '\t' => {}
+                ' ' | '\r' | '\t' => {}
                 '\n' => self.line += 1,
                 '"' => self.handle_string_literal(),
                 _token => {
