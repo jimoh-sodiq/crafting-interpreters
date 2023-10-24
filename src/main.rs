@@ -11,13 +11,13 @@ pub mod token_types;
 fn main() {
     let args: Vec<String> = env::args().collect();
 
-    if args.len() > 2 {
-        println!("Usage: lox [script]");
-        process::exit(64);
-    } else if args.len() == 2 {
-        run_file(&args[1]).expect("failed to run the file");
-    } else {
-        run_prompt().expect("Failed to run the prompt");
+    match args.len() {
+        1 => run_prompt().expect("Failed to run the prompt"),
+        2 => run_file(&args[1]).expect("failed to run the file"),
+        _ => {
+            println!("Usage: lox [script]");
+            process::exit(64);
+        }
     }
 }
 
@@ -45,14 +45,6 @@ fn run_prompt() -> io::Result<()> {
             }
             Err(e) => eprintln!("Error: {}", e.to_string()),
         }
-        // if let Ok(line) = line {
-        //     if line.is_empty() {
-        //         break;
-        //     }
-        //     run(line.to_string())
-        // } else {
-        //     break;
-        // }
     }
     Ok(())
 }
@@ -61,11 +53,3 @@ fn run(source: String) {
     let mut scanner = Scanner::new(source);
     let _tokens = scanner.scan_tokens();
 }
-
-// struct Lox {
-//     had_error: bool,
-// }
-
-// impl Lox {
-//     fn report(&self) {}
-// }
