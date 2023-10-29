@@ -3,6 +3,7 @@ use std::fs;
 use std::io::{self, stdout, BufRead, Write};
 use std::{env, process};
 
+pub mod ast;
 pub mod error;
 mod scanner;
 pub mod token;

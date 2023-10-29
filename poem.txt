@@ -1,2 +1,4 @@
+/*this is the thing
+/*nested within*/
 var jimoh = "hello"
-return true
+return true*/

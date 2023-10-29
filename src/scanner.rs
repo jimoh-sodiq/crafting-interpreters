@@ -162,7 +162,7 @@ impl Scanner {
     }
 
     fn is_alpha_numeric(&self, c: char) -> bool {
-        c.is_ascii_alphanumeric()|| c.is_ascii_digit()
+        c.is_ascii_alphanumeric() || c.is_ascii_digit()
     }
 
     fn identifier(&mut self) {
@@ -175,6 +175,35 @@ impl Scanner {
         match ttype {
             Some(t) => self.add_token(t),
             None => self.add_token(TokenType::Identifier),
+        }
+    }
+
+    fn handle_multiline_comment(&mut self) {
+        loop {
+            match self.peek() {
+                '*' => {
+                    self.advance();
+                    if self.matches('/') {
+                        return;
+                    }
+                }
+                '/' => {
+                    self.advance();
+                    if self.matches('*') {
+                        self.handle_multiline_comment();
+                    }
+                }
+                '\n' => {
+                    self.line += 1;
+                    self.advance();
+                }
+                _ => {
+                    self.advance();
+                }
+            }
+            if self.is_at_end() {
+                panic!("Failed to close open comment")
+            }
         }
     }
 
@@ -201,6 +230,8 @@ impl Scanner {
                         while (self.peek() != '\n') && (!self.is_at_end()) {
                             self.advance();
                         }
+                    } else if self.matches('*') {
+                        self.handle_multiline_comment();
                     } else {
                         self.add_token(TokenType::Slash);
                     }
