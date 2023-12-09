@@ -3,11 +3,12 @@ use std::fs;
 use std::io::{self, stdout, BufRead, Write};
 use std::{env, process};
 
-pub mod ast;
 pub mod error;
-mod scanner;
+pub mod scanner;
 pub mod token;
 pub mod token_types;
+pub mod ast_print;
+pub mod expr;
 
 fn main() {
     let args: Vec<String> = env::args().collect();
@@ -28,6 +29,7 @@ fn run_file(path: &String) -> io::Result<()> {
         println!("{}", line);
     }
     run(contents.to_string());
+    // write!()
     Ok(())
 }
 
@@ -35,6 +37,7 @@ fn run_prompt() -> io::Result<()> {
     let stdin = io::stdin();
     print!("> ");
     stdout().flush()?;
+
     for line in stdin.lock().lines() {
         match line {
             Ok(val) => {
