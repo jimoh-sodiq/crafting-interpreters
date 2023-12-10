@@ -1,4 +1,5 @@
 use std::env;
+use std::fmt::write;
 use std::fs::File;
 use std::io::{self, Write};
 
@@ -22,10 +23,10 @@ fn main() -> io::Result<()> {
         &output_dir.to_string(),
         &"Expr".to_string(),
         &vec![
-            "Binary : Box<Expr> pub left, Token pub operator, Box<Expr> pub right".to_string(),
-            "Grouping : Box<Expr> pub expression".to_string(),
-            "Literal : Option<Object> pub value".to_string(),
-            "Unary : Token pub operator, Box<Expr> pub right".to_string(),
+            "Binary : Box<Expr> left, Token operator, Box<Expr> right".to_string(),
+            "Grouping : Box<Expr> expression".to_string(),
+            "Literal : Option<Object> value".to_string(),
+            "Unary : Token operator, Box<Expr> right".to_string(),
         ],
     )?;
     Ok(())
@@ -59,18 +60,38 @@ fn define_ast(output_dir: &String, base_name: &String, types: &Vec<String>) -> i
     for tree in &tree_types {
         write!(
             file,
-            "{}({}),\n",
+            "   {}({}),\n",
             tree.base_class_name.trim(),
             tree.class_name
         )?;
     }
-    write!(file, " }}\n\n")?;
+    write!(file, "}}\n\n")?;
+
+    write!(file, "impl {} {{\n   pub fn accept<T>(&self, {}_visitor: &dyn ExprVisitor<T>) -> Result<T, LoxError>{{\n", base_name, base_name.to_lowercase())?;
+    write!(file,"       match self {{\n")?;
+
+    for tree in &tree_types {
+        write!(
+            file,
+            "           {}::{}({}) => {}.accept({}_visitor),\n",
+            base_name,
+            tree.base_class_name.trim(),
+            base_name.to_lowercase(),
+            base_name.to_lowercase(),
+            base_name.to_lowercase()
+        )?;
+    }
+    write!(file,"       }}\n")?;
+    write!(file,"   }}\n")?;
+    write!(file,"}}\n")?;
+
+    write!(file, "\n\n")?;
 
     for t in &tree_types {
         write!(file, "\npub struct {} {{\n", t.class_name)?;
         for field in &t.fields {
             let (key, val) = field.trim().split_once(":").unwrap();
-            write!(file, "{key}: {val},\n")?;
+            write!(file, "    pub {key}: {val},\n")?;
         }
         write!(file, "}}\n\n")?;
     }
@@ -80,7 +101,7 @@ fn define_ast(output_dir: &String, base_name: &String, types: &Vec<String>) -> i
     for t in &tree_types {
         write!(
             file,
-            "fn visit_{}_{}(&self, expr: &{}) -> Result<T, LoxError> {{}}\n",
+            "   fn visit_{}_{}(&self, expr: &{}) -> Result<T, LoxError>;\n",
             t.base_class_name.trim().to_lowercase(),
             base_name.to_lowercase(),
             t.class_name
@@ -91,7 +112,7 @@ fn define_ast(output_dir: &String, base_name: &String, types: &Vec<String>) -> i
     for t in &tree_types {
         write!(
             file,
-            "impl {} {{\n fn accept<T>(&self, visitor: &dyn {}Visitor<T>) -> Result<T, LoxError> {{\n visitor.visit_{}_{}(&self);\n}}\n }}\n\n",
+            "impl {} {{\n   pub fn accept<T>(&self, visitor: &dyn {}Visitor<T>) -> Result<T, LoxError> {{\n       visitor.visit_{}_{}(&self)\n   }}\n}}\n\n",
             t.class_name,
             base_name,
             t.base_class_name.trim().to_lowercase(),

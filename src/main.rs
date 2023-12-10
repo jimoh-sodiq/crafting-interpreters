@@ -1,3 +1,5 @@
+use ast_print::*;
+
 use crate::scanner::Scanner;
 use std::fs;
 use std::io::{self, stdout, BufRead, Write};
@@ -11,6 +13,8 @@ pub mod ast_print;
 pub mod expr;
 
 fn main() {
+
+    test_printer();
     let args: Vec<String> = env::args().collect();
 
     match args.len() {

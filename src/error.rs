@@ -1,4 +1,5 @@
 
+#[derive(Debug)]
 pub struct LoxError {
     pub had_error: bool,
 }

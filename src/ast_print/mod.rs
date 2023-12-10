@@ -1,5 +1,7 @@
 use crate::error::*;
 use crate::expr::*;
+use crate::token::*;
+use crate::token_types::TokenType;
 // use token::*;
 
 
@@ -34,6 +36,35 @@ impl ExprVisitor<String> for AstPrinter {
     }
 }
 
-fn main() {
+pub fn test_printer() {
     println!("Hello, world!");
+
+    let expression = Expr::Binary(BinaryExpr {
+        left: Box::new(Expr::Unary(UnaryExpr {
+            operator: Token {
+                token_type: TokenType::Minus,
+                lexeme: "-".to_string(),
+                literal: None,
+                line: 1
+            },
+            right: Box::new(Expr::Literal(LiteralExpr {
+                value: Some(Object::Num(123.0))
+            }))
+        })),
+        operator: Token {
+            token_type: TokenType::Star,
+            lexeme: "*".to_string(),
+            literal: None,
+            line: 1
+        },
+        right: Box::new(Expr::Grouping(GroupingExpr {
+            expression: Box::new(Expr::Literal(LiteralExpr {
+                value: Some(Object::Num(45.67))
+            }))
+        }))
+    });
+    let printer = AstPrinter{};
+
+    let result = printer.print(&expression);
+    println!("{}", &result.unwrap());
 }
