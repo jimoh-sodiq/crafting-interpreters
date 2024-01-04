@@ -11,6 +11,7 @@ pub mod token;
 pub mod token_types;
 pub mod ast_print;
 pub mod expr;
+pub mod parser;
 
 fn main() {
 
